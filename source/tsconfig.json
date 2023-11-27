@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"target": "ES5",
+		"lib": [
+			"ESNext"
+		],
+		"experimentalDecorators": true,
+		"downlevelIteration": true,
+		"allowJs": true
+	},
+	"exclude": [
+		"**/node_modules/*",
+		"dom",
+		"webpack"
+	],
+	"include": [
+	"base.ts",
+	"Structure/Agriculture.ts",
+	"Structure/Recipes.ts",
+	"library.ts",
+	
+	],
+	"files": [
+		"../declarations/core-engine.d.ts"
+		
+	]
+}
