@@ -1,6 +1,8 @@
 
 var i;
-
+var IPlants = new IContainer("plants")
+var ITrees = new IContainer("trees");
+var IFarmland = new IContainer("farmland") 
 namespace Agriculture {
   export const plants = {
     tree: [],
@@ -34,8 +36,9 @@ namespace Agriculture {
     new ModItem("seed_" + id,name,texture,meta=meta||0,stack=stack||64)
   }
   export function cropRegistry(id, name, texture,meta, stack, isFood) {
-    IDRegistry.genItemID("crop_" + id);
+
     if (isFood == true) {
+      IDRegistry.genItemID("crop_" + id);
       Item.createFoodItem(
         "crop_" + id,
         name,
@@ -78,35 +81,27 @@ namespace Agriculture {
       }
     );
     new ModBlock("plant_"+id,stads,PLANT)
-    Agriculture.plants.onGrass.push({
+    IPlants.push({
       seed: ItemID["seed_" + id],
       block: BlockID["plant_" + id],
       crop: ItemID["crop_" + id],
-    });
+      steps: steps
+    })
     if (farmland) {
       Agriculture.place(
         ItemID[id],
         BlockID["plant_" + id],
         BlockID["farmland_" + farmland]
       );
-
-      Block.setAnimateTickCallback(
-        BlockID["plant_" + id],
-        function (x, y, z, id, data) {
-          if (World.getBlock(x, y, z).data < steps) {
-            World.setBlock(x, y, z, BlockID["plant_" + id], data + 1);
-          }
-        }
-      );
     }
-  }
+  } 
   export function registry(
     id: universal,
     name: string,
     stack: number,
     texture: string,
     meta: number,
-    isFood: boolean,
+    isFood: boolean, 
     texture2: string,
     steps: number,
     farmland: any,
@@ -124,13 +119,9 @@ namespace Agriculture {
     );
   }
   export function treeRegistry(id: any, texture: any, stack: number, name: string) {
-    stack = stack || 64;
-    texture = texture || id;
-    name = name || id[0].toUpperCase() + id.slice(1).replace(/_/g, " ").toString();
-    IDRegistry.genItemID(id);
-    Item.createItem(id, name, { name: texture, meta: 0 }, { stack: stack });
-    IDRegistry.genBlockID("sapling_" + id);
-    Block.createBlock(
+    
+    new ModItem(id,name,texture,0,stack)
+    new ModBlock(
       "sapling_" + id,
       [
         {
@@ -139,15 +130,16 @@ namespace Agriculture {
           inCreative: true,
         },
       ],
-      PLANT
+
     );
-    Agriculture.place(ItemID[id], BlockID["sapling_" + id] + BlockID[id]);
-    Agriculture.plants.tree.push({
+    Agriculture.place(ItemID[id], BlockID["sapling_" + id], BlockID[id]);
+    ITrees.push ({
       item: ItemID[id],
       block: BlockID["sapling_" + id],
     });
   }
-  export function farmlandRegistry(id: universal, texture: any) {
+  export function farmlandRegistry(id: universal, texture: any,wet?: [int,int]) {
+    wet = wet || [VanillaBlockID["water"],VanillaBlockID["flowing_water"]]
     texture = texture || id;
     var model = BlockRenderer.createModel();
     var render = new ICRender.Model();
@@ -163,46 +155,70 @@ namespace Agriculture {
     BlockRenderer.setStaticICRender(BlockID[id], -1, render);
 
     
-    IDRegistry.genBlockID("farmland_" + id);
-    Block.createBlock("farmland_" + id, [
-      {
-        name: "Farmland " + id,
-        texture: [[texture, 0]],
-        inCreative: true,
+    new ModBlock("farmland_" + id, [{
+      name: "Farmland " + id,
+      texture: [[texture + "_dry", 0]],
+      inCreative: true
       },
-    ]);
-
+      {
+      name: "Farmland " + id,
+      texture: [[texture + "_wet", 0]],
+      inCreative: false
+      }
+      ]);
+       IFarmland.push({block: BlockID["farmland_"+ id], liquid: wet})
     for (var i in Agriculture.vanilla_plants) {
-      Agriculture.place(
-        VanillaItemID[Agriculture.vanilla_plants.item[i]],
-        VanillaBlockID[Agriculture.vanilla_plants.block[i]],
+        Agriculture.place(
+        Agriculture.vanilla_plants.item[i],
+       Agriculture.vanilla_plants.block[i],
         BlockID[id]
       );
-    }
+      }
   }
 }
+
+Block.setAnimateTickCallback(
+  IPlants.get("block"),
+  function (x, y, z, id, data) {
+    if (World.getBlock(x, y, z).data < IPlants.get("steps")) {
+      World.setBlock(x, y, z, id, data + 1);
+    }
+  }
+);
+
+
+Block.setAnimateTickCallback(IFarmland.get("block"), function(x, y, z, id, data) {
+  let blck;
+  for(var i = -4; i < 5; i++) {
+  for(var l = -4; l < 5; l++) {
+  blck = World.getBlock(x + i, y, z + l);
+  if(blck in IFarmland.get("liquid") && World.getBlockData(x, y, z) == 0) {
+  World.setBlock(x, y, z, id, data+1);
+  }
+  }  
+}
+}); 
 
 
 Callback.addCallback(
   "ItemUse",
   function (coords: any, item: any, block: any, isExternal: any, player: any) {
-    for (var k in Agriculture.plants.onGrass) {
+  
       var coords = coords.relative;
       if (
         item.id == 351 &&
-        block == Agriculture.plants.onGrass[k].block &&
+        block == IPlants.get("block") &&
         block.data < i
       ) {
         World.setBlock(
           coords.x,
           coords.y,
           coords.z,
-          Agriculture.plants.onGrass[k].block,
+          IPlants.get("block"),
           block.data + 1
         );
       }
-    }
+    
   }
 );
 
-EXPORT("AgricultureCore", Agriculture);

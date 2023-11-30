@@ -15,10 +15,12 @@
 	],
 	"include": [
 	"base.ts",
+	"Structure/IContainer.ts",
 	"Structure/Agriculture.ts",
 	"Structure/Recipes.ts",
+	"Structure/Converter.ts",
 	"library.ts",
-	
+	"Exports.ts"
 	],
 	"files": [
 		"../declarations/core-engine.d.ts"

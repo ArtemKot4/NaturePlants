@@ -366,7 +366,6 @@ declare module com {
                     export class ItemContainerUiHandler extends java.lang.Object implements innercore.api.mod.ui.container.UiAbstractContainer {
                         static class: java.lang.Class<ItemContainerUiHandler>;
                         constructor(container: ItemContainer);
-                        sendEvent();
                         onWindowClosed(): void;
                         getWindow(): innercore.api.mod.ui.window.IWindow;
                         openAs(window: innercore.api.mod.ui.window.IWindow): void;
@@ -1524,7 +1523,6 @@ declare module com {
                                  */
                                 tileEntity: Nullable<TileEntity> | any;
                                 constructor();
-                                sendEvent();
                                 constructor(parent: any);
                                 /**
                                  * Sets container's parent object, for [[TileEntity]]'s container it 
@@ -1822,9 +1820,7 @@ declare module com {
                     export module ui {
                         export module container {
                             export class UiAbstractContainer extends java.lang.Object {
-                                sendEvent(): any;
                                 static class: java.lang.Class<UiAbstractContainer>;
-                                
                                 constructor();
                                 constructor(impl: {
                                     addElementInstance(element: elements.UIElement, name: string): void;
