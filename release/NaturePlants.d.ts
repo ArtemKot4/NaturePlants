@@ -1,4 +1,4 @@
-declare namespace Agriculture {
+declare namespace AgricultureCore {
   /**
    * Объект, содержащий 2 массива, хранящих информацию о деревьях и растениях.
    */
@@ -46,33 +46,13 @@ declare namespace Agriculture {
     count
   ): void;
 
-  /**
-   *
-   * @параметр id - ключевое слово для создания семян, плодов и блока растения.
-   * @параметр name - ключевое слово
-   * @параметр stack - максимальное количество предметов в слоте
-   * @параметр texture - название текстур для всего кроме блока растения
-   * @параметр meta - последнее число на конце текстуры предметов
-   * @параметр isFood - плод будет съедобным? true || false
-   * @параметр texture2 - название текстуры блока растения
-   * @параметр steps - количество стадий роста
-   * @параметр farmland - название пашни
-   * @параметр count - количество выпадаемых предметов
-   */
-
-  export function registry(
-    id: string | number,
-    name: string,
-    stack: number,
-    texture: string,
-    meta: number,
-    isFood: boolean,
-    texture2: string,
-    steps: number,
-    farmland: any,
-    count: number
-  );
-}
+/**
+ * Регистрация кастомной пашни
+ * @параметр id - строковой идентификатор пашни
+ * @параметр texture - название текстуры 
+ * @параметр wet - массив с двумя числовыми идентификаторами, отвечающими за жидкость, нужной для превращения пашни в мокрый вариант
+ */
+export function farmlandRegistry(id: string | number, texture: string, wet?: [number, number]): void;
 
 /**
  *
@@ -82,7 +62,7 @@ declare namespace Agriculture {
  * @параметр meta - последнее число текстуры: например _1
  * @параметр stack - количество предметов в стаке
  */
-
+  }
 declare function ModItem(id, name, texture, meta, stack): void;
 
 /**
