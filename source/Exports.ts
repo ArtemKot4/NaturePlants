@@ -1,10 +1,9 @@
-EXPORT("AgricultureCore", Agriculture);
+
+EXPORT("IC",IC)
+EXPORT("IContainer",IContainer);
+EXPORT("ModItem",ModItem);
+EXPORT("ModBlock",ModBlock);
 EXPORT("IPlants",IPlants)
 EXPORT("ITrees",ITrees)
-
-EXPORT("ModItem",ModItem);
-EXPORT("ModBlock",ModBlock)
-EXPORT("IContainer",IContainer)
-EXPORT("IC",IC)
-
+EXPORT("AgricultureCore", Agriculture);
 EXPORT("Converter", Converter);

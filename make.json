@@ -1,0 +1,75 @@
+{
+	"resources": [
+		{
+			"path": "assets",
+			"type": "resource_directory"
+		},
+		{
+			"path": "models",
+			"type": "resource_directory"
+		},
+		{
+			"path": "assets/gui",
+			"type": "gui"
+		}
+		
+	],
+	"sources": [
+		{
+			"source": "source",
+			"target": "main.js",
+			"type": "main",
+			"language": "typescript"
+		},
+		{
+			"source": "launcher.js",
+			"type": "launcher",
+			"language": "javascript"
+		},
+		{
+			"source": "lib/*",
+			"type": "library",
+			"language": "javascript"
+		}
+	],
+	"compile": [
+		{
+			"source": "native",
+			"type": "native"
+		},
+		{
+			"source": "java",
+			"type": "java"
+		}
+	],
+	"additional": [
+		{
+			"source": "config.json",
+			"targetDir": "."
+		},
+		{
+			"source": "config.info.json",
+			"targetDir": "."
+		}
+	],
+	"info": {
+		"name": "Nature plants",
+		"author": "Artem & Sergeyoshi",
+		"version": "last",
+		"description": "",
+		"icon": "mod_icon.png",
+		"project": {
+			"compiledLibraries": true
+			}
+	},
+	"project": {
+		"compiledLibraries": true
+	},
+	"api": "CoreEngine",
+	"linkNative": [
+		"minecraftpe",
+		"innercore",
+		"nativejs"
+	],
+	"excludeFromRelease": []
+}
