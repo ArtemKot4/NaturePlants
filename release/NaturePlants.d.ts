@@ -1,4 +1,6 @@
-declare namespace AgricultureCore {
+declare type int = number;
+declare type universal = string | number;
+declare module AgricultureCore {
   /**
    * Объект, содержащий 2 массива, хранящих информацию о деревьях и растениях.
    */
@@ -28,22 +30,14 @@ declare namespace AgricultureCore {
 
   /**
    *
-   * @параметр id - ключевое название растения
-   * @параметр texture - название текстуры блока растения
-   * @параметр name - название блока растения
-   * @параметр steps - количество стадий роста
+   * @параметр data: {name: "Название блока растения", id: ["растение", "семена", "урожай"], steps: [текстуры], drop: []} 
    * @параметр farmland - можно ли садить на пашню, если можно то идентификатор пашни
-   * @параметр count - количество выпадаемых предметов
    */
 
   export function plantRegistry(
-    id,
-    texture,
-    name,
-    texture2,
-    steps,
-    farmland,
-    count
+    data: { name: string, id: [string, string?, string?, ("item" | "block")?], steps: string[], drop?: [int,universal,int] },
+
+    farmland: string
   ): void;
 
 /**

@@ -7,8 +7,8 @@
 	"include": [
 		"library.ts",
 		"base.ts",
-		"Structure/IContainer.ts",
-		"Structure/Agriculture.ts",
+		"Structure/Farmland.ts",
+		"Structure/Plant.ts",
 		"Structure/Converter.ts",
 		"Exports.ts"
 	]

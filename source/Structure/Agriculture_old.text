@@ -1,0 +1,286 @@
+module Agriculture {
+  export var i: int;
+  export const IPlants: IContainer = new IContainer("plants");
+  export const ITrees: IContainer = new IContainer("trees");
+  export const IFarmland: IContainer = new IContainer("farmland");
+  export const plants: {} = {
+    tree: [],
+
+    onGrass: [],
+  };
+  export const vanilla_plants = {
+    item: [296, 361, 362, 391, 392, 457],
+    block: [59, 104, 105, 141, 142, 244],
+  };
+  export function place(
+    item: universal,
+    place_block: any,
+    isBlock?: any
+  ): void {
+    Item.registerUseFunction(item, function (coords, item, block: any, player) {
+      var region = BlockSource.getDefaultForActor(player);
+      var place = coords.relative;
+
+      if (block == isBlock) {
+        region.setBlock(place.x, place.y, place.z, place_block);
+      } else if (isBlock == undefined && block == VanillaBlockID["grass"]) {
+        region.setBlock(place.x, place.y, place.z, place_block);
+      }
+      if (Game.getGameMode() != 1) {
+        Entity.setCarriedItem(player, item.id, item.count - 1, item.data);
+      }
+    });
+  }
+  export function seedRegistry(id, name, texture, meta, stack) {
+    //хм, а если семечки можно есть...
+    //  джин, знаем любим и едим значит вручную зарегают через ModItem
+    new ModItem(
+      "seed_" + id,
+      name,
+      texture,
+      (meta = meta || 0),
+      (stack = stack || 64)
+    );
+  }
+  export function cropRegistry(id, name, texture, meta, stack, isFood) {
+    if (isFood == true) {
+      IDRegistry.genItemID("crop_" + id);
+      Item.createFoodItem(
+        "crop_" + id,
+        name,
+        { name: "crop_" + texture, meta: meta },
+        { stack: stack }
+      );
+    } else {
+      new ModItem("crop_" + id, name, texture, meta, stack);
+    }
+  }
+
+  /** {
+  name: string
+  id: [plant[0],seeds[1]||"seed_"+id[0],crop[2]||"crop_"+id[0]]
+  steps: [набор строк]
+  drop: [min,max,id,data] почему 4 параметра ааа, не нужны мин макс
+ } 
+ */
+  export function plantRegistry(
+    data: {
+      name: string;
+      id: [string, string?, string?, ("item" | "block")?];
+      steps: string[];
+      drop?: [int, universal, int];
+    },
+
+    farmland: string
+  ): void {
+    //Идея мне нравится
+    data.id[1] = data.id[1] || "seed_" + data.id[0];
+    data.id[2] = data.id[2] || "crop_" + data.id[0];
+    data.id[3] = data.id[3] || "item"; //а это как тип
+    var seed = ItemID[data.id[1]] || VanillaItemID[data.id[1]] || 0;
+    if ((data.id[3] = "item")) {
+      var crop = ItemID[data.id[2]] || VanillaItemID[data.id[2]];
+    } else if ((data.id[3] = "block")) {
+      var crop = BlockID[data.id[2]] || VanillaBlockID[data.id[2]];
+    } else {
+      Debug.message(
+        "[AgricultureManager]: Error! id for crop or seed is not defined"
+      );
+      var crop: any = 0;
+    }
+    if (crop && seed) {
+      let stads = [];
+      for (i = 0; i < data.steps.length; i++) {
+        stads.push({
+          name: data.name,
+          texture: [[data.steps.slice(0, data.steps[i].length - 2), 0]],
+          inCreative: false,
+        });
+      }
+      new ModBlock(data.id[0], stads, PLANT);
+      IPlants.push({
+        seed: ItemID[data.id[1]],
+        block: BlockID[data.id[0]],
+        crop: ItemID[data.id[2]],
+        steps: data.steps,
+      });
+      if (farmland) {
+        Agriculture.place(
+          ItemID[data.id[1]],
+          BlockID[data.id[0]],
+          BlockID[farmland]
+        );
+      }
+
+      Block.registerDropFunction(
+        BlockID[data.id[0]],
+        function (coords, id, dat, toolLevel, enchantData, item, region) {
+          var cycle = data.drop.length % 3;
+          var zaraza = [];
+          if (cycle) {
+            if (
+              World.getBlock(coords.x, coords.y, coords.z).data ==
+                data.steps.length &&
+              cycle
+            ) {
+              for (var s = 0; s < cycle; s++) {
+                var drop =
+                  ItemID[data.drop[1 + s]] ||
+                  BlockID[data.drop[1 + s]] ||
+                  VanillaItemID[data.drop[1 + s]] ||
+                  VanillaBlockID[data.drop[1 + s]];
+                zaraza.push([drop, data.drop[0 + s], data.drop[2 + s]]); //Щас , я хз. вне либы напишу НЕ ЗАБЫЛИ ЕСТЬ ОНА ДАВНО НАПИСАНА где в пизде на 226 строке
+              }
+              return zaraza;
+            } else if (
+              World.getBlock(coords.x, coords.y, coords.z).data <
+              data.steps.length
+            ) {
+              return [[ItemID[data.drop[1] || data.id[2]], data.drop[0], 0]];
+            }
+          } else {
+            if (
+              World.getBlock(coords.x, coords.y, coords.z).data ==
+                data.steps.length &&
+              cycle
+            ) {
+              return [
+                [seed, Math.floor(Math.random() * 2 + 1), 0],
+                [[crop, 1, 0]],
+              ];
+            } else if (
+              World.getBlock(coords.x, coords.y, coords.z).data <
+              data.steps.length
+            ) {
+              return [[seed, 1, 0]];
+            }
+          }
+        }
+      );
+    } else {
+      Debug.message(
+        "[AgricultureManager] I don't know this error, probably you don't registered seed & crop"
+      );
+    }
+  }
+  export function treeRegistry(
+    id: universal,
+    texture: any,
+    stack: number,
+    name: string
+  ) {
+    new ModItem(id, name, texture, 0, stack);
+    new ModBlock("sapling_" + id, [
+      {
+        name: name,
+        texture: [[texture, 0]],
+        inCreative: true,
+      },
+    ]);
+    Agriculture.place(ItemID[id], BlockID["sapling_" + id], BlockID[id]);
+    ITrees.push({
+      item: ItemID[id],
+      block: BlockID["sapling_" + id],
+    });
+  }
+  export function farmlandRegistry(
+    id: universal,
+    texture: any,
+    wet?: [int, int]
+  ) {
+    wet = wet || [VanillaBlockID["water"], VanillaBlockID["flowing_water"]];
+    texture = texture || id;
+    var model = BlockRenderer.createModel();
+    var render = new ICRender.Model();
+    model.addBox(0, 0, 0, 1, 15 / 16, 1, texture, 0);
+
+    var collision = new ICRender.CollisionShape();
+    var entry = collision.addEntry();
+    entry.addBox(0, 0, 0, 1, 15 / 16, 1);
+    BlockRenderer.setCustomCollisionShape(BlockID[id], -1, collision);
+
+    render.addEntry(model);
+
+    BlockRenderer.setStaticICRender(BlockID[id], -1, render);
+
+    new ModBlock("farmland_" + id, [
+      {
+        name: "Farmland " + id,
+        texture: [[texture + "_dry", 0]],
+        inCreative: true,
+      },
+      {
+        name: "Farmland " + id,
+        texture: [[texture + "_wet", 0]],
+        inCreative: false,
+      },
+    ]);
+    IFarmland.push({ block: BlockID["farmland_" + id], liquid: wet });
+    for (var i in Agriculture.vanilla_plants) {
+      Agriculture.place(
+        vanilla_plants.item[i],
+        vanilla_plants.block[i],
+        BlockID[id]
+      );
+    }
+  }
+}
+
+Block.setAnimateTickCallback(
+  Agriculture.IPlants.get("block"),
+  function (x, y, z, id, data) {
+    if (World.getBlock(x, y, z).data < Agriculture.IPlants.get("steps")) {
+      World.setBlock(x, y, z, id, data + 1);
+    }
+  }
+);
+
+Block.setAnimateTickCallback(
+  Agriculture.IFarmland.get("block"),
+  function (x, y, z, id, data) {
+    let blck;
+    for (var i = -4; i < 5; i++) {
+      for (var l = -4; l < 5; l++) {
+        blck = World.getBlock(x + i, y, z + l);
+        if (
+          blck in Agriculture.IFarmland.get("liquid") &&
+          World.getBlockData(x, y, z) == 0
+        ) {
+          World.setBlock(x, y, z, id, data + 1);
+        }
+      }
+    }
+  }
+);
+
+Callback.addCallback(
+  "ItemUse",
+  function (coords: any, item: any, block: any, isExternal: any, player: any) {
+    var coords = coords.relative;
+    if (
+      item.id == 351 &&
+      block == Agriculture.IPlants.get("block") &&
+      block.data < Agriculture.i
+    ) {
+      World.setBlock(
+        coords.x,
+        coords.y,
+        coords.z,
+        Agriculture.IPlants.get("block"),
+        block.data + 1
+      );
+    }
+  }
+);
+
+/*
+AgricultureCore.farmlandRegistry("inferium", null)
+AgricultureCore.seedRegistry("test","Test","null",0,16) 
+AgricultureCore.cropRegistry("test","Test","null",0,16,true)
+
+ data: { name: string, id: [string, string?, string?, ("item" | "block")?], steps: string[], drop?: [int,universal,int] },
+
+    farmland: string
+
+AgricultureCore.plantRegistry({"fortest", ["fortest","seed_test","crop_test"], "item", ["first","second","third"],дроп сам напиши, я не шарю за твой код}, "farmland_inferium") 
+ */

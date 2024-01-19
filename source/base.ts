@@ -9,8 +9,6 @@ const PLANT = Block.createSpecialType({
   material: 4,
 });
 
-let IC = {}; //Нужно будет класс для предмета потом в отдельный файл вынести.
-
 class ModItem {
   public id: string;
   public name: string;
