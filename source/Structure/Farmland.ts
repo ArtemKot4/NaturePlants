@@ -17,7 +17,7 @@ class Farmland {
     melon: { seed: 362, plant: 105, block: 86, crop: 360 },
   };
 
-  constructor(type: string, texture: string, ratio?: int, fluid?: int) {
+  constructor(type: string, texture: string, ratio?: int, blacklist: {type: "STANDART" | "BLOCK", list: string[]} | null,fluid?: int) {
     this.type = type;
     this.texture = texture || type + "_farmland";
     ratio = ratio || null;
@@ -27,9 +27,17 @@ class Farmland {
     const values = Object.values(this.STANDART);
     for(const i in values){
         this.set(values[i].seed, values[i].plant, this.intId);
-
-    }
-  }
+    };
+  this.create();
+  this.blockTick();
+  this.setModel();
+  blacklist instanceof Object && this.blacklist(blacklist.type, blacklist.list);
+  };
+  public blacklist(type: "BLOCK" | "STANDART", list: []): void {
+      for(const i in list){
+          delete [type][list[i]];
+      }
+  };
   public set(item: int, place_block: any, isBlock: int): boolean {
     Item.registerUseFunction(item, (coords, item, block: any, player) => {
       const region = BlockSource.getDefaultForActor(player);
@@ -54,7 +62,7 @@ class Farmland {
       this.set(item, plant, this.intId);
   }
  
-  public create = (() => {
+  public create = () => {
     new ModBlock(this.id, [
       {
         name: "Farmland " + this.type,
@@ -69,8 +77,8 @@ class Farmland {
     ]);
     // * meta 0 = status water is empty; 
     // * meta 1 = status water is full
-  })();
-  public blockTick = (() => {
+  };
+  public blockTick = () => {
    
 Block.setAnimateTickCallback(
     this.intId,(x, y, z, id, data) => {
@@ -85,8 +93,8 @@ Block.setAnimateTickCallback(
     }
 });
 
-  })();
-  public setModel = (() => {
+  };
+  public setModel = () => {
     const model = BlockRenderer.createModel();
     const render = new ICRender.Model();
     const collision = new ICRender.CollisionShape();
@@ -97,6 +105,6 @@ Block.setAnimateTickCallback(
     BlockRenderer.setCustomCollisionShape(this.intId, -1, collision);
     render.addEntry(model);
     BlockRenderer.setStaticICRender(this.intId, -1, render);
-  })();
+  };
 }
 

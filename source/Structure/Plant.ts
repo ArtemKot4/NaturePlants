@@ -10,7 +10,7 @@ class Plant {
   public farmland: any = null;
   public static plants: {} = {};
 
-    protected blockTick = (() => {
+    protected blockTick = () => {
    if(!this.farmland) return null;
         Block.setAnimateTickCallback(
           this.block,(x, y, z, id, data) => { 
@@ -25,7 +25,7 @@ class Plant {
                   } 
                 }
           });
-      })() ;
+      };
       protected getFarmland(region: BlockSource, x: int, y: int, z: int): boolean {
         const bottom_id  = region.getBlockId(x,y - 1, z);
         const bottom_data = region.getBlockData(x,y - 1, z);
@@ -33,7 +33,7 @@ class Plant {
           (this.farmland.vanilla == VanillaBlockID["farmland"] && bottom_id == this.farmland.vanilla) 
               && bottom_data == 1) return true;
       };
-    protected setTile = (() => {
+    protected setTile = () => {
       const ratio = Farmland.registered[this.farmland.name].ratio;
       if (ratio == null) return;
      const getFarmland = this.getFarmland;
@@ -48,7 +48,7 @@ class Plant {
           }}
        }
       }); // ~~ = Math.floor()
-  } );
+  };
 
    constructor(block: _block_desc, item: _item_desc, drop: _drop_desc, farmland?: int, vanilla? : typeof VanillaBlockID ) {
         this.block = BlockID[block.id];
@@ -58,6 +58,8 @@ class Plant {
            {name: farmland, id: BlockID[farmland], vanilla: standart })
         this.stages = block.stages;
       this.create(item, block, drop);
+      this.blockTick();
+      this.setTile();
     };
     public create (item: _item_desc, block: _block_desc, drop: _drop_desc): void {
       new ModItem(item.id, item.name, item.texture, 0, 1).create();
