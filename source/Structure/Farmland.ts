@@ -1,8 +1,9 @@
 class Farmland {
   public readonly type: string; // * ключевое слово
   public readonly texture: string;
-  public readonly fluid: number; // * жидкость
-  public id: number;
+  public readonly fluid: int; // * жидкость
+  public id: string;
+  public intId: int
   public static registered = {};
 
   public STANDART = {
@@ -16,26 +17,41 @@ class Farmland {
     melon: { seed: 362, plant: 105, block: 86, crop: 360 },
   };
 
-  constructor(type, texture, ratio?, fluid?) {
+  constructor(type: string, texture: string, ratio?: int, fluid?: int) {
     this.type = type;
     this.texture = texture || type + "_farmland";
     ratio = ratio || null;
     this.fluid = fluid || 9;
-    this.id = BlockID[type + "_farmland"];
-    Farmland.registered[this.id] = {block: this.id, ratio: ratio, item: [], plant: []};
+    this.intId = BlockID[type + "_farmland"];
+    Farmland.registered[this.id] = {block: this.intId, ratio: ratio, item: [], plant: []};
     const values = Object.values(this.STANDART);
     for(const i in values){
-        this.set(values[i].seed, values[i].plant, this.id);
+        this.set(values[i].seed, values[i].plant, this.intId);
 
     }
   }
-  public set(item, place_block, isBlock): void {
-    Plant.prototype.place.apply(this, arguments);
+  public set(item: int, place_block: any, isBlock: int): boolean {
+    Item.registerUseFunction(item, (coords, item, block: any, player) => {
+      const region = BlockSource.getDefaultForActor(player);
+      const place = coords.relative;
+      if(!place_block || block !== isBlock) return null;
+      if(block !== isBlock && isBlock) return null;
+  
+        region.setBlock(place.x, place.y, place.z, place_block);
+     if (!isBlock && block == VanillaBlockID["grass"]) 
+        region.setBlock(place.x, place.y, place.z, place_block);
+      
+
+      if (Game.getGameMode() != 1) 
+ Entity.setCarriedItem(player, item.id, item.count - 1, item.data);
+
+    });
+    return !!place_block;
   }
-  public push(item: int[], plant: int[]): void {
+  public push(item: int, plant: int): void {
    Farmland.registered[this.id].item.push(item);
    Farmland.registered[this.id].plant.push(plant);
-      this.set(item, plant, this.id);
+      this.set(item, plant, this.intId);
   }
  
   public create = (() => {
@@ -57,26 +73,19 @@ class Farmland {
   public blockTick = (() => {
    
 Block.setAnimateTickCallback(
-    this.id,(x, y, z, id, data) => {
+    this.intId,(x, y, z, id, data) => {
         const region = BlockSource.getDefaultForDimension(Player.getDimension());
-        const tile = TileEntity.getTileEntity(x, y, z, region);
-  
       for (let i = -4; i < 5; i++) {
         for (let l = -4; l < 5; l++) {
-           
-          if ( 
             region.getBlockId(x + i, y, z + l) == this.fluid &&
-            region.getBlockData(x, y, z) == 0
-          ) {
-            region.setBlock(x, y, z, id, data + 1);
-           if (tile && tile.status == 0) tile.status = 1;
-          };
+              region.getBlockData(x, y, z) == 0 ?
+              region.setBlock(x, y, z, id, data + 1): 
+            region.setBlock(x, y, z, id, data - 1);
         }
-        
     }
 });
 
-  });
+  })();
   public setModel = (() => {
     const model = BlockRenderer.createModel();
     const render = new ICRender.Model();
@@ -85,9 +94,9 @@ Block.setAnimateTickCallback(
 
     model.addBox(0, 0, 0, 1, 15 / 16, 1, this.texture, 0);
     entry.addBox(0, 0, 0, 1, 15 / 16, 1);
-    BlockRenderer.setCustomCollisionShape(this.id, -1, collision);
+    BlockRenderer.setCustomCollisionShape(this.intId, -1, collision);
     render.addEntry(model);
-    BlockRenderer.setStaticICRender(this.id, -1, render);
+    BlockRenderer.setStaticICRender(this.intId, -1, render);
   })();
 }
 

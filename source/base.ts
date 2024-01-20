@@ -10,11 +10,7 @@ const PLANT = Block.createSpecialType({
 });
 
 class ModItem {
-  public id: string;
-  public name: string;
-  public texture: string;
-  public meta: int;
-  public stack: int;
+  
   public create(): void {
     Item.createItem(
       this.id,
@@ -22,8 +18,8 @@ class ModItem {
       { name: this.texture, meta: this.meta },
       { stack: this.stack }
     );
-  }
-  constructor(id, name, texture, meta, stack) {
+  };
+  constructor(public id: string,public name: string,public texture: string,public meta: int = 0,public stack: int = 64) {
     this.id = id;
     this.name = name;
     this.texture = texture;
@@ -32,7 +28,7 @@ class ModItem {
   }
 }
 
-function ModBlock(id, description, type?) {
+function ModBlock(id: string, description, type?: string | Block.SpecialType) {
   IDRegistry.genBlockID(id);
   Block.createBlock(id, description, (type = type || null));
 }

@@ -1,9 +1,5 @@
-
-EXPORT("IC",IC)
-EXPORT("ModItem",ModItem);
-EXPORT("ModBlock",ModBlock);
-EXPORT("IPlants",Agriculture.IPlants)
-EXPORT("ITrees",Agriculture.ITrees)
-EXPORT("AgricultureCore", Agriculture);
+//EXPORT("ModItem",ModItem);
+//EXPORT("ModBlock",ModBlock);
+EXPORT("Plant", Plant)
 EXPORT("Farmland", Farmland)
 EXPORT("Converter", Converter);
