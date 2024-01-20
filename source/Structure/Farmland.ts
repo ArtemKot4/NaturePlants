@@ -24,10 +24,13 @@ class Farmland {
     this.fluid = fluid || 9;
     this.intId = BlockID[type + "_farmland"];
     Farmland.registered[this.id] = {block: this.intId, ratio: ratio, item: [], plant: []};
+    if(!blacklist){
     const values = Object.values(this.STANDART);
     for(const i in values){
         this.set(values[i].seed, values[i].plant, this.intId);
     };
+  };
+  
   this.create();
   this.blockTick();
   this.setModel();
