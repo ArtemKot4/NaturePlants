@@ -1,52 +1,82 @@
 declare type int = number;
 declare type universal = string | number;
-declare module AgricultureCore {
-  /**
-   * Объект, содержащий 2 массива, хранящих информацию о деревьях и растениях.
-   */
-  export const plants: { tree: []; onGrass: [] };
-  /**
-   * Объект, содержащий 2 массива, хранящий числовые идентификаторы ванильных растений
-   */
-  export const vanilla_plants: {
-    item: [296, 361, 362, 391, 392, 457];
-    block: [59, 104, 105, 141, 142, 244];
-  };
-  /**
-   * Функция для постановки растений
-   * @параметр item - название предмета
-   * @параметр place_block - название блока для постановки
-   * @параметр isBlock - название блока для проверки на соответствие
-   */
-  export function place(
-    item: string | number,
-    place_block: any,
-    isBlock?: any
-  ): void;
-
-  export function seedRegistry(id, name, texture, meta, stack): void;
-
-  export function cropRegistry(id, name, texture, meta, stack): void;
-
-  /**
-   *
-   * @параметр data: {name: "Название блока растения", id: ["растение", "семена", "урожай"], steps: [текстуры], drop: []} 
-   * @параметр farmland - можно ли садить на пашню, если можно то идентификатор пашни
-   */
-
-  export function plantRegistry(
-    data: { name: string, id: [string, string?, string?, ("item" | "block")?], steps: string[], drop?: [int,universal,int] },
-
-    farmland: string
-  ): void;
-
-/**
- * Регистрация кастомной пашни
- * @параметр id - строковой идентификатор пашни
- * @параметр texture - название текстуры 
- * @параметр wet - массив с двумя числовыми идентификаторами, отвечающими за жидкость, нужной для превращения пашни в мокрый вариант
+/** class for creating mod farmlands
  */
-export function farmlandRegistry(id: string | number, texture: string, wet?: [number, number]): void;
+declare class Farmland {
+  /** public param for create id farmland [your word + "_farmland"]
+   * 
+   */
+  public readonly type: string;
+  /**
+   * public param for declare custom water id (if dont used id is vanilla water -> 9)
+   */
+  public readonly fluid: number;
+  /**
+   * public param generating in constructor - BlockID[type]
+   */
+  public id: string;
+  /**
+   * public static param, storage: Farmland.registered("your type": {block: this.id, ratio: ratio: id -> [constructor param], item: [items for planting on farmland], plant: [block of plant]})
+   */
+  public static registered: {}
+
+  /**
+   * public param, object -> includes vanilla plants without pumpkin and melon
+   */
+  public STANDART: {
+    wheat: { seed: 296, plant: 59, crop: 295 },
+    carrot: { seed: 391, plant: 141 },
+    potato: { seed: 392, plant: 142 },
+    beetroot: { seed: 457, plant: 244 },
+  };
+
+  /**
+   * public param, object -> includes vanilla pumpkin and melon
+   */
+
+  public BLOCK: {
+    pumpkin: { seed: 361, plant: 104, block: 104 },
+    melon: { seed: 362, plant: 105, block: 86, crop: 360 },
+  };
+  /** public method blacklist for delete keys from: STANDART | BLOCK params
+   * 
+   * @param type object includes vanilla id
+   * @param list list of keys
+   */
+  public blacklist(type: "BLOCK" | "STANDART", list: string[]): void;
+
+  constructor(type: string, texture: string, ratio?: number, blacklist?: {type: "STANDART" | "BLOCK", list: string[]} | null,fluid?: number)
+  public push(item: int, plant: int): void 
+  public create(): void
+  protected blockTick(): void
+  private setModel(): void
+
+
+
+} 
+
+  /** function for placing plants on your custom farmland
+   * @param item item id for clicking
+   * @param place_block block id for placing
+   * @param isBlock block for checking
+   */
+ declare function place (item: int, placeBlock: any, isBlock: int): boolean;
+
+declare class Plant {
+  public item: int;
+  public block: int;
+  public stages: int;
+  public farmland: any;
+    public static plants: {}
+/**
+  * 
+  * @param item description item
+  * @param block description block
+  * @param drop description drop of block
+  */
+public create (item: {id: string, name: string,
+  texture: string}, block: {id: string, texture: string, stages: int}, drop: {id?, count?, data?}): void
+}
 
 /**
  *
@@ -56,7 +86,6 @@ export function farmlandRegistry(id: string | number, texture: string, wet?: [nu
  * @параметр meta - последнее число текстуры: например _1
  * @параметр stack - количество предметов в стаке
  */
-  }
 declare function ModItem(id, name, texture, meta, stack): void;
 
 /**
@@ -67,32 +96,6 @@ declare function ModItem(id, name, texture, meta, stack): void;
  */
 
 declare function ModBlock(id, description, type?): void;
-
-/**
- * Класс, созданный для хранения данных.    
- * При создании нового экземпляра в объект IC вносится ключ, 
- с названием указанном при создании.   
- * Класс позволяет получать легко получать данные ключа. 
- */
-
-declare class IContainer {
-  public name: string;
-  /** Метод для добавления содержимого в ваш ключ.
-   * @параметр prototype - содержимое, добавляемое в ключ
-   */
-  public push(prototype): void;
-  /**
-   * Метод, позволяющий получить содержимое созданного ключа
-   * @параметр value - название ключа добавляемого объекта в prototype
-   */
-  public get(value): any
-   /**
-   * Метод, позволяющий получить содержимое созданного ключа. 
-   * @параметр name - название ключа, данные которого вы хотите получить
-   * @параметр value - название ключа вашего объекта в ключе с названием параметра name
-   */
-  public static getForType(name,value): any
-}
 
 declare const Converter: {
   colorsArr: [

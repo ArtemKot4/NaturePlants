@@ -1,9 +1,7 @@
 class Farmland {
   public readonly type: string; // * ключевое слово
-  public readonly texture: string;
   public readonly fluid: int; // * жидкость
-  public id: string;
-  public intId: int
+  public id: int;
   public static registered = {};
 
   public STANDART = {
@@ -17,74 +15,56 @@ class Farmland {
     melon: { seed: 362, plant: 105, block: 86, crop: 360 },
   };
 
-  constructor(type: string, texture: string, ratio?: int, blacklist: {type: "STANDART" | "BLOCK", list: string[]} | null,fluid?: int) {
-    this.type = type;
-    this.texture = texture || type + "_farmland";
-    ratio = ratio || null;
-    this.fluid = fluid || 9;
-    this.intId = BlockID[type + "_farmland"];
-    Farmland.registered[this.id] = {block: this.intId, ratio: ratio, item: [], plant: []};
-    if(!blacklist){
-    const values = Object.values(this.STANDART);
-    for(const i in values){
-        this.set(values[i].seed, values[i].plant, this.intId);
+  constructor(type: string, obj?: {exclude?: {type: "STANDART" | "BLOCK", list: string[]} | false, ratio?: int, fluid?: int}) {
+    this.type = type + "_farmland";
+    this.fluid = obj?.fluid || 9;
+    this.id = BlockID[type];
+    Farmland.registered[this.type] = {block: this.id, ratio: obj?.ratio || null, item: [], plant: []}; //push farmland data to static storage
+    
+    this.create();
+    this.blockTick();
+    this.setModel();
+      Game.message("Информация о созданном экземплере класса: пашне -> \n" + this + "\n\n\n\n");
+    if(obj && (obj.exclude || obj.exclude !== false)){ 
+      const values = objectValues(this.STANDART);
+      for(const i in values){ //vanilla plants can placing
+          place(values[i].seed, values[i].plant, this.id);
+      };
+      if(obj.exclude instanceof Object) this.blacklist(obj.exclude.type, obj.exclude.list); //declare deletes vanilla plants from list
     };
+
   };
-  
-  this.create();
-  this.blockTick();
-  this.setModel();
-  blacklist instanceof Object && this.blacklist(blacklist.type, blacklist.list);
-  };
-  public blacklist(type: "BLOCK" | "STANDART", list: []): void {
+  public blacklist(type: "BLOCK" | "STANDART", list: string[]): void {
       for(const i in list){
           delete [type][list[i]];
       }
   };
-  public set(item: int, place_block: any, isBlock: int): boolean {
-    Item.registerUseFunction(item, (coords, item, block: any, player) => {
-      const region = BlockSource.getDefaultForActor(player);
-      const place = coords.relative;
-      if(!place_block || block !== isBlock) return null;
-      if(block !== isBlock && isBlock) return null;
-  
-        region.setBlock(place.x, place.y, place.z, place_block);
-     if (!isBlock && block == VanillaBlockID["grass"]) 
-        region.setBlock(place.x, place.y, place.z, place_block);
-      
-
-      if (Game.getGameMode() != 1) 
- Entity.setCarriedItem(player, item.id, item.count - 1, item.data);
-
-    });
-    return !!place_block;
-  }
   public push(item: int, plant: int): void {
-   Farmland.registered[this.id].item.push(item);
-   Farmland.registered[this.id].plant.push(plant);
-      this.set(item, plant, this.intId);
+   Farmland.registered[this.type].item.push(item);
+   Farmland.registered[this.type].plant.push(plant);
+      place(item, plant, this.id); //args uses for declare placing custom plants
   }
  
-  public create = () => {
-    new ModBlock(this.id, [
+  public create(): void {
+    new ModBlock(this.type, [
       {
-        name: "Farmland " + this.type,
-        texture: [[this.texture, 0]],
+        name: this.type,
+        texture: [[this.type, 0]],
         inCreative: true,
       },
       {
-        name: "Farmland " + this.type,
-        texture: [[this.texture, 1]],
-        inCreative: false,
+        name: this.type,
+        texture: [[this.type, 1]],
+        inCreative: true, //false
       },
     ]);
     // * meta 0 = status water is empty; 
     // * meta 1 = status water is full
   };
-  public blockTick = () => {
+  protected blockTick(): void {
    
 Block.setAnimateTickCallback(
-    this.intId,(x, y, z, id, data) => {
+    this.id,(x, y, z, id, data) => {
         const region = BlockSource.getDefaultForDimension(Player.getDimension());
       for (let i = -4; i < 5; i++) {
         for (let l = -4; l < 5; l++) {
@@ -97,17 +77,17 @@ Block.setAnimateTickCallback(
 });
 
   };
-  public setModel = () => {
+  private setModel(): void {
     const model = BlockRenderer.createModel();
     const render = new ICRender.Model();
     const collision = new ICRender.CollisionShape();
     const entry = collision.addEntry();
 
-    model.addBox(0, 0, 0, 1, 15 / 16, 1, this.texture, 0);
+    model.addBox(0, 0, 0, 1, 15 / 16, 1, this.type, 0);
     entry.addBox(0, 0, 0, 1, 15 / 16, 1);
-    BlockRenderer.setCustomCollisionShape(this.intId, -1, collision);
+    BlockRenderer.setCustomCollisionShape(this.id, -1, collision);
     render.addEntry(model);
-    BlockRenderer.setStaticICRender(this.intId, -1, render);
+    BlockRenderer.setStaticICRender(this.id, -1, render);
   };
 }
 
